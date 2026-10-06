@@ -42,7 +42,9 @@ uvicorn main:app --reload
 | Start Command | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
 | 환경변수 | `DATABASE_URL` — Supabase Session Pooler 연결, `sslmode=require` |
 
-실제 연결 문자열은 Render 환경변수에만 저장했습니다. `DATABASE_URL`이 없으면 이 코드는 SQLite로 전환되므로 설정을 유지해야 합니다. `main` 브랜치에 push하면 자동 배포됩니다.
+실제 연결 문자열은 Render 환경변수에만 저장했습니다. `DATABASE_URL`이 없으면 이 코드는 SQLite로 전환되므로 설정을 유지해야 합니다.
+
+현재 서비스는 공개 저장소 URL을 통해 배포되었습니다. 코드를 수정해 `main` 브랜치에 push한 뒤에는 Render의 **Manual Deploy → Deploy latest commit**으로 반영합니다. 자동 배포를 사용하려면 Render의 GitHub 연결에서 이 저장소의 접근 권한을 추가해야 합니다. [Render 배포 안내](https://render.com/docs/deploys)
 
 `render.yaml`은 같은 구성을 재현할 때 사용할 수 있는 Blueprint 템플릿입니다. 현재 서비스는 Blueprint로 관리하지 않으므로 이 파일 수정만으로 서비스 설정이 바뀌지는 않습니다. 템플릿은 HTTP `/accounts` 상태 확인을 지정하며, 현재 서비스는 기본 TCP 상태 확인을 사용합니다.
 
