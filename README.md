@@ -1,13 +1,14 @@
 # 가계부 API — 클라우드 컴퓨팅 실습 Week 4
 
 - GitHub: https://github.com/qkryung/ledger-api
-- Render: 새 서비스 생성 및 연동 검증 후 주소 기입 예정
+- Render: https://dfmba-ledger-api.onrender.com
+- Swagger API 문서: https://dfmba-ledger-api.onrender.com/docs
 
 ## 진행 상태
 
-워크북 4단계까지의 FastAPI·SQLAlchemy 코드가 구현되어 있습니다. 로컬 설정으로 Supabase PostgreSQL에 접속하고 `accounts`, `categories`, `transactions` 테이블을 읽을 수 있음을 확인했습니다.
+워크북 1~4단계 구현과 **5단계 Render 배포·Supabase PostgreSQL 연동 검증을 완료했습니다.**
 
-**이 저장소용 Render 서비스를 새로 만들어야 합니다.** 아래 5단계 배포와 Supabase 저장·조회 확인을 마친 뒤 새 서비스 주소를 README에 기입하고 제출합니다.
+Render의 FastAPI에서 계좌와 거래를 생성하고, 같은 데이터가 Supabase의 `accounts`, `transactions` 테이블에 저장되는 것을 직접 확인했습니다. 기본 주소(`/`)를 열면 `/docs`로 이동합니다.
 
 ## 구현된 기능
 
@@ -29,20 +30,34 @@ uvicorn main:app --reload
 
 프로젝트 폴더의 `.env`에 `DATABASE_URL`을 설정하고 http://127.0.0.1:8000/docs 에서 실행합니다. 현재 드라이버에 맞춰 연결 문자열은 `postgresql+psycopg://`로 시작해야 합니다. `.env`와 DB 비밀번호는 Git에 올리지 않습니다.
 
-## 남은 필수 작업: 5단계 Render + Supabase
+## Render 배포 설정
 
-1. Render에서 **New → Web Service**로 새 서비스를 만들고 이 저장소의 `main` 브랜치를 연결합니다. 저장소 루트에 코드가 있으므로 Root Directory는 비워 둡니다.
-2. Build Command를 `pip install -r requirements.txt`로 설정합니다.
-3. Start Command를 `uvicorn main:app --host 0.0.0.0 --port $PORT`로 설정합니다.
-4. Render의 Environment에 `DATABASE_URL`을 추가하고 로컬 `.env`의 Supabase 연결 문자열 **값**을 입력합니다. 환경변수가 없으면 이 코드는 SQLite로 전환되므로 반드시 설정합니다.
-5. 새 서비스의 배포가 완료되면 발급된 Render 주소의 `/docs`를 엽니다. Health Check Path를 설정하는 경우 이 코드에 존재하는 `/accounts`를 사용합니다.
-6. Render의 `POST /accounts`에서 테스트 계좌를 생성하고, `GET /accounts`로 조회합니다. Supabase Table Editor의 `accounts`에도 같은 ID·이름·잔액이 나타나는지 확인합니다.
-7. 이 README의 Render 주소를 검증 완료한 주소로 확정하고, GitHub 주소와 Render 주소를 제출합니다.
+| 항목 | 설정 |
+| --- | --- |
+| 서비스 이름 | `dfmba-ledger-api` |
+| 요금제 / 리전 | Free / Singapore |
+| 저장소 / 브랜치 | `qkryung/ledger-api` / `main` |
+| Root Directory | 비워 둠 |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| 환경변수 | `DATABASE_URL` — Supabase Session Pooler 연결, `sslmode=require` |
+
+실제 연결 문자열은 Render 환경변수에만 저장했습니다. `DATABASE_URL`이 없으면 이 코드는 SQLite로 전환되므로 설정을 유지해야 합니다. `main` 브랜치에 push하면 자동 배포됩니다.
+
+`render.yaml`은 같은 구성을 재현할 때 사용할 수 있는 Blueprint 템플릿입니다. 현재 서비스는 Blueprint로 관리하지 않으므로 이 파일 수정만으로 서비스 설정이 바뀌지는 않습니다. 템플릿은 HTTP `/accounts` 상태 확인을 지정하며, 현재 서비스는 기본 TCP 상태 확인을 사용합니다.
 
 워크북 6·7단계는 평가 제외 확장 실습입니다.
 
-## 확인한 범위
+## 연동 검증 결과
 
-- 임시 SQLite DB에서 계좌 생성·조회, 거래 생성, 중첩 응답, 지출 집계 및 없는 계좌의 404 응답을 검증했습니다.
-- 로컬 Supabase 연결은 읽기 전용으로 확인했습니다. 원격 DB에 테스트 데이터를 추가하지 않았습니다.
-- Render에서 Supabase로 데이터를 저장하는 검증은 남아 있습니다.
+2026-10-06에 배포된 Render 주소를 대상으로 확인했습니다.
+
+- `/docs`, `/openapi.json`, `GET /accounts`: 정상 응답.
+- `POST /accounts`, `POST /transactions`: 각각 HTTP 201로 생성 성공.
+- 계좌 목록, 거래 중첩 상세, 카테고리별 지출 집계: 정상 응답.
+- Supabase에 별도로 읽기 전용 접속하여 Render에서 생성한 계좌·거래의 ID와 값이 일치함을 확인.
+- 확인용 계좌 ID `1`과 거래 ID `1`을 남겨 두었습니다. 거래 금액은 `-1000`, 메모는 `Deployment integration verification`입니다.
+
+로컬 임시 SQLite DB에서도 주요 기능과 없는 계좌의 404 응답을 검증했습니다.
+
+제출 항목은 맨 위의 GitHub 주소와 Render 주소입니다.

@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+services:
+  - type: web
+    name: dfmba-ledger-api
+    runtime: python
+    plan: free
+    region: singapore
+    repo: https://github.com/qkryung/ledger-api.git
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /accounts
+    envVars:
+      - key: DATABASE_URL
+        sync: false
